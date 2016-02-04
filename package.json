@@ -1,0 +1,23 @@
+{
+  "name": "nodetoy",
+  "version": "0.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nathanrosspowell/nodetoy.git"
+  },
+  "author": "Nathan Ross Powell <nathanrosspowell@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/nathanrosspowell/nodetoy/issues"
+  },
+  "homepage": "https://github.com/nathanrosspowell/nodetoy",
+  "dependencies": {
+    "express": "^4.10.2",
+    "socket.io": "^1.4.5"
+  }
+}
