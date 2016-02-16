@@ -17,6 +17,7 @@ io.on('connection', function(socket){
     console.log('emit message: ' + msg);
     io.emit('chat message', msg);
   });
+  io.emit('chat message', 'Welcome!');
 });
 
 http.listen(port, function(){
