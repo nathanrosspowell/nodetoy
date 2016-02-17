@@ -10,13 +10,18 @@
       form#fm button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; }
       #messages { list-style-type: none; margin: 0; padding: 0; }
       #messages li { padding: 5px 10px; }
+      #messages li.update { color:blue; }
       #messages li:nth-child(odd) { background: #eee; }
     </style>
   </head>
   <body>
+    <h1>Settings</h1>
     <form id="fn" action="">
       <input id="n" autocomplete="off" /><button>Set Name</button>
     </form>
+    <h1>Users</h1>
+    <ul id="users"></ul>
+    <h1>Chat</h1>
     <ul id="messages"></ul>
     <form id="fm" action="">
       <input id="m" autocomplete="off" /><button>Send Message</button>
@@ -24,19 +29,37 @@
 <script src="/socket.io/socket.io.js"></script>
 <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
 <script>
-  var socket = io();
+  var socket = io()
   $('#fm').submit(function(){
-    socket.emit('chat_message', $('#m').val());
-    $('#m').val('');
-    return false;
-  });
+    socket.emit('chat_message', $('#m').val())
+    $('#m').val('')
+    return false
+  })
   $('#fn').submit(function(){
-    socket.emit('name_change', $('#n').val());
-    return false;
-  });
+    socket.emit('name_change', $('#n').val())
+    return false
+  })
   socket.on('chat_message', function(msg){
-    $('#messages').append($('<li>').text(msg));
-  });
+    $('#messages').append($('<li>').text(msg))
+  })
+  socket.on('chat_update', function(msg){
+    $('#messages').append($('<li>').addClass('update').text('>  ' + msg))
+  })
+  socket.on('user_list', function(list){
+    for (i = 0; i < list.length; i++) { 
+      var user = list[i]
+      $('#users').append($('<li>').attr('id', 'user'+user.id).text(user.name))
+    }
+  })
+  socket.on('user_add', function(user){
+    $('#users').append($('<li>').attr('id', 'user'+user.id).text(user.name))
+  })
+  socket.on('user_remove', function(user){
+    $('#user'+user.id).remove()
+  })
+  socket.on('name_change', function(user){
+    $('#user'+user.id).text(user.name)
+  })
 </script>>
   </body>
 </html>

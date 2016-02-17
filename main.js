@@ -12,22 +12,23 @@ app.get('/', function(req, res){
 })
 
 io.on('connection', function(socket){
-  var id = count++;
-  var name = "User " + id
-  users[socket.id] = { name:name, id:id }
-  console.log('a user connected: ' + name)
   var values = Object.keys(users).map(function(key){
     return users[key];
   });
+  var id = count++;
+  var name = "User " + id
+  socket.emit('user_list', values)
+  users[socket.id] = { name:name, id:id }
+  console.log('a user connected: ' + name)
   socket.broadcast.emit('chat_message', 'User "' + name + '" joined')
   socket.broadcast.emit('user_add', users[socket.id])
-  socket.emit('chat_message', 'Welcome, ' + name + '!')
-  socket.emit('user_list', values)
+  socket.emit('chat_update', 'Welcome, ' + name + '!')
 
 
   socket.on('disconnect', function(){
     console.log('user disconnected')
-    io.emit('chat_message', 'User "'+ users[socket.id] + '" left.')
+    io.emit('chat_update', 'User "'+ users[socket.id].name + '" left.')
+    io.emit('user_remove', users[socket.id])
     delete users[socket.id]
   })
 
@@ -41,7 +42,8 @@ io.on('connection', function(socket){
     var oldName = users[socket.id].name
     users[socket.id].name = msg
     console.log('emit message: ' + msg)
-    io.emit('chat_message', '"' + oldName + '" changed name to  "' + msg + '"')
+    io.emit('chat_update', '"' + oldName + '" changed name to  "' + msg + '"')
+    io.emit('name_change', users[socket.id])
   })
 })
 
