@@ -29,6 +29,7 @@
 <script src="/socket.io/socket.io.js"></script>
 <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
 <script>
+$(function(){
   var socket = io()
   $('#fm').submit(function(){
     socket.emit('chat_message', $('#m').val())
@@ -60,6 +61,7 @@
   socket.on('name_change', function(user){
     $('#user'+user.id).text(user.name)
   })
+});
 </script>>
   </body>
 </html>
