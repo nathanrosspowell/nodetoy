@@ -21,6 +21,8 @@
     </form>
     <h1>Users</h1>
     <ul id="users"></ul>
+    <h1>Typing</h1>
+    <ul id="typers"></ul>
     <h1>Chat</h1>
     <ul id="messages"></ul>
     <form id="fm" action="">
@@ -30,37 +32,84 @@
 <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
 <script>
 $(function(){
+  var isTyping = {}
+
+  function stopTyping(id) {
+    delete isTyping[id]
+    $('#typer'+id).remove()
+  }
+
+  function addChat(data){
+    $('#messages').append($('<li>').text(data.user + ": " + data.msg, "")
+  }
+
+  function addUpdate(message){
+    $('#messages').append($('<li>').addClass("update").text(message)
+  }
+
   var socket = io()
+
   $('#fm').submit(function(){
     socket.emit('chat_message', $('#m').val())
     $('#m').val('')
     return false
   })
+
+  $('#m').on('input', function() {
+    socket.emit('is_typing');
+  })
+
   $('#fn').submit(function(){
     socket.emit('name_change', $('#n').val())
     return false
   })
-  socket.on('chat_message', function(msg){
-    $('#messages').append($('<li>').text(msg))
+
+  socket.on('is_typing', function(user){
+    if (user.id in isTyping){
+      clearTimeout(isTyping[user.id])
+    }
+    else {
+      $('#typers').append($('<li>').attr('id', 'typer'+user.id).text(user.name + "..."))
+    }
+    isTyping[user.id] = setTimeout(stopTyping, 2000, user.id, user.name)
   })
-  socket.on('chat_update', function(msg){
-    $('#messages').append($('<li>').addClass('update').text('>  ' + msg))
+
+  socket.on('connection', function(user){
+    addUpdate('Welcome, "' + user.name '"!')
   })
+
+  socket.on('chat_message', function(data){
+    addChat(data)
+    stopTyping(data.id)
+  })
+
   socket.on('user_list', function(list){
     for (i = 0; i < list.length; i++) { 
       var user = list[i]
       $('#users').append($('<li>').attr('id', 'user'+user.id).text(user.name))
     }
   })
+
   socket.on('user_add', function(user){
     $('#users').append($('<li>').attr('id', 'user'+user.id).text(user.name))
+    addUpdate('"' + user.name + '" joined.')
   })
+
   socket.on('user_remove', function(user){
     $('#user'+user.id).remove()
+    addUpdate('"' + user.name + '" left.')
   })
+
   socket.on('name_change', function(user){
-    $('#user'+user.id).text(user.name)
+    var userEntry = $('#user'+user.id)
+    var oldName = userEntry.text()
+    userEntry.text(user.name)
+    if (user.id in isTyping){
+      $('#typer'+user.id).text(user.name+"...");
+    }
+    addUpdate('"' + oldName + '" changed name to  "' + user.name + '"')
   })
+
 });
 </script>>
   </body>

@@ -20,29 +20,30 @@ io.on('connection', function(socket){
   socket.emit('user_list', values)
   users[socket.id] = { name:name, id:id }
   console.log('a user connected: ' + name)
-  socket.broadcast.emit('chat_message', 'User "' + name + '" joined')
   socket.broadcast.emit('user_add', users[socket.id])
-  socket.emit('chat_update', 'Welcome, ' + name + '!')
-
+  socket.emit('connection', users[socket.id])
 
   socket.on('disconnect', function(){
     console.log('user disconnected')
-    io.emit('chat_update', 'User "'+ users[socket.id].name + '" left.')
     io.emit('user_remove', users[socket.id])
     delete users[socket.id]
   })
 
   socket.on('chat_message', function(msg){
     console.log('emit message: ' + msg)
-    io.emit('chat_message', users[socket.id].name + ': ' + msg)
+    var user = users[socket.id]
+    io.emit('chat_message', { name:user.name, id:user.id, msg:msg })
   })
 
   socket.on('name_change', function(msg){
     var oldName = users[socket.id].name
     users[socket.id].name = msg
     console.log('emit message: ' + msg)
-    io.emit('chat_update', '"' + oldName + '" changed name to  "' + msg + '"')
     io.emit('name_change', users[socket.id])
+  })
+
+  socket.on('is_typing', function(){
+      socket.broadcast.emit('is_typing', users[socket.id]);
   })
 })
 
