@@ -45,7 +45,7 @@ $(function(){
   }
 
   function addUpdate(message){
-    $('#messages').append($('<li>').addClass("update").text(message))
+    $('#messages').append($('<li>').addClass("update").text('> ' +message))
   }
 
   var socket = io()
@@ -105,14 +105,22 @@ $(function(){
   })
 
   socket.on('name_change', function(user){
-    var userEntry = $('#user'+user.id)
-    var oldName = userEntry.text()
-    userEntry.text(user.name)
-    localUser.name = user.name
+    var oldName = "server_error"
+    var userList = $('#user'+user.id)
+    if (userList.get(0)){
+      oldName = userList.text()
+      userList.text(user.name)
+      addUpdate('"' + oldName + '" changed name to  "' + user.name + '"')
+    }
+    else {
+      var oldName = localUser.name
+      localUser.name = user.name
+      addUpdate('You changed your name to  "' + user.name + '"')
+    }
+    $('#user'+user.id).text(user.name)
     if (user.id in isTyping){
       $('#typer'+user.id).text(user.name+"...");
     }
-    addUpdate('"' + oldName + '" changed name to  "' + user.name + '"')
   })
 
 });
