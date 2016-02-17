@@ -33,6 +33,7 @@
 <script>
 $(function(){
   var isTyping = {}
+  var localUser = {}
 
   function stopTyping(id) {
     delete isTyping[id]
@@ -40,17 +41,19 @@ $(function(){
   }
 
   function addChat(data){
-    $('#messages').append($('<li>').text(data.user + ": " + data.msg, "")
+    $('#messages').append($('<li>').text(data.name + ": " + data.msg))
   }
 
   function addUpdate(message){
-    $('#messages').append($('<li>').addClass("update").text(message)
+    $('#messages').append($('<li>').addClass("update").text(message))
   }
 
   var socket = io()
 
   $('#fm').submit(function(){
-    socket.emit('chat_message', $('#m').val())
+    var msg = $('#m').val()
+    socket.emit('chat', msg)
+    addChat(jQuery.extend({msg:msg}, localUser))
     $('#m').val('')
     return false
   })
@@ -75,10 +78,11 @@ $(function(){
   })
 
   socket.on('connection', function(user){
-    addUpdate('Welcome, "' + user.name '"!')
+    localUser = user
+    addUpdate('Welcome, "' + user.name + '"!')
   })
 
-  socket.on('chat_message', function(data){
+  socket.on('chat', function(data){
     addChat(data)
     stopTyping(data.id)
   })
@@ -104,6 +108,7 @@ $(function(){
     var userEntry = $('#user'+user.id)
     var oldName = userEntry.text()
     userEntry.text(user.name)
+    localUser.name = user.name
     if (user.id in isTyping){
       $('#typer'+user.id).text(user.name+"...");
     }

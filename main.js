@@ -7,7 +7,7 @@ var count = 0;
 var users = {}
 
 app.get('/', function(req, res){
-  console.log('sending out index.html')
+  console.log('[app.get /] sending out index.html')
   res.sendFile(__dirname + '/index.html')
 })
 
@@ -19,31 +19,34 @@ io.on('connection', function(socket){
   var name = "User " + id
   socket.emit('user_list', values)
   users[socket.id] = { name:name, id:id }
-  console.log('a user connected: ' + name)
   socket.broadcast.emit('user_add', users[socket.id])
+  console.log('[connection]', name, id, socket.id)
   socket.emit('connection', users[socket.id])
 
   socket.on('disconnect', function(){
-    console.log('user disconnected')
-    io.emit('user_remove', users[socket.id])
+    var user = users[socket.id]
+    console.log('[disconnect]', user.name, user.id)
+    io.emit('user_remove', user);
     delete users[socket.id]
   })
 
-  socket.on('chat_message', function(msg){
-    console.log('emit message: ' + msg)
+  socket.on('chat', function(msg){
     var user = users[socket.id]
-    io.emit('chat_message', { name:user.name, id:user.id, msg:msg })
+    console.log('[chat]', user.name, user.id, msg)
+    socket.broadcast.emit('chat', { name:user.name, id:user.id, msg:msg })
   })
 
   socket.on('name_change', function(msg){
     var oldName = users[socket.id].name
     users[socket.id].name = msg
-    console.log('emit message: ' + msg)
-    io.emit('name_change', users[socket.id])
+    var user = users[socket.id]
+    console.log('[name_change]', oldName, user.name, user.id, msg)
+    io.emit('name_change', user)
   })
 
   socket.on('is_typing', function(){
-      socket.broadcast.emit('is_typing', users[socket.id]);
+    var user = users[socket.id]
+    socket.broadcast.emit('is_typing', user)
   })
 })
 
