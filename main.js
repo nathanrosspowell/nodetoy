@@ -35,7 +35,6 @@ io.on('connection', function(socket){
   socket.on('chat_message', function(msg){
     console.log('emit message: ' + msg)
     io.emit('chat_message', users[socket.id].name + ': ' + msg)
-    socket.broadcast.emit('user_remove', users[socket.id])
   })
 
   socket.on('name_change', function(msg){
