@@ -52,9 +52,11 @@ $(function(){
 
   $('#fm').submit(function(){
     var msg = $('#m').val()
-    socket.emit('chat', msg)
-    addChat(jQuery.extend({msg:msg}, localUser))
-    $('#m').val('')
+    if (msg && msg.length > 0) {
+      socket.emit('chat', msg)
+      addChat(jQuery.extend({msg:msg}, localUser))
+      $('#m').val('')
+    }
     return false
   })
 
@@ -63,7 +65,10 @@ $(function(){
   })
 
   $('#fn').submit(function(){
-    socket.emit('name_change', $('#n').val())
+    var name = $('#n').val()
+    if (name && name.length > 0) {
+        socket.emit('name_change', name)
+    }
     return false
   })
 
