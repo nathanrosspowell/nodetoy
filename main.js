@@ -48,6 +48,10 @@ io.on('connection', function(socket){
     var user = users[socket.id]
     socket.broadcast.emit('is_typing', user)
   })
+
+  socket.on('blob', function(blob){
+    socket.broadcast.emit('blob', blob)
+  })
 })
 
 http.listen(port, function(){

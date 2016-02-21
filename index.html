@@ -73,6 +73,12 @@
         </div>
     </nav>
     <div class="container">
+            <div id="sketch" class="panel panel-default">
+                <canvas id="paint"></canvas>
+            </div>
+            <form id="cm" action="" class="corm-inline">
+              <button type="submit" class="btn btn-default">Send Drawing</button>
+            </form>
         <div class="col-sm-3  chat-sidebar header-padding">
             <h1>Settings</h1>
             <form id="fn" action="">
@@ -108,10 +114,14 @@
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous" type="text/javascript"></script>
     <script type="text/javascript">
 //<![CDATA[
+!function(t){"use strict";var e=t.HTMLCanvasElement&&t.HTMLCanvasElement.prototype,o=t.Blob&&function(){try{return Boolean(new Blob)}catch(t){return!1}}(),n=o&&t.Uint8Array&&function(){try{return 100===new Blob([new Uint8Array(100)]).size}catch(t){return!1}}(),r=t.BlobBuilder||t.WebKitBlobBuilder||t.MozBlobBuilder||t.MSBlobBuilder,a=/^data:((.*?)(;charset=.*?)?)(;base64)?,/,i=(o||r)&&t.atob&&t.ArrayBuffer&&t.Uint8Array&&function(t){var e,i,l,u,b,c,d,B,f;if(e=t.match(a),!e)throw new Error("invalid data URI");for(i=e[2]?e[1]:"text/plain"+(e[3]||";charset=US-ASCII"),l=!!e[4],u=t.slice(e[0].length),b=l?atob(u):decodeURIComponent(u),c=new ArrayBuffer(b.length),d=new Uint8Array(c),B=0;B<b.length;B+=1)d[B]=b.charCodeAt(B);return o?new Blob([n?d:c],{type:i}):(f=new r,f.append(c),f.getBlob(i))};t.HTMLCanvasElement&&!e.toBlob&&(e.mozGetAsFile?e.toBlob=function(t,o,n){t(n&&e.toDataURL&&i?i(this.toDataURL(o,n)):this.mozGetAsFile("blob",o))}:e.toDataURL&&i&&(e.toBlob=function(t,e,o){t(i(this.toDataURL(e,o)))})),"function"==typeof define&&define.amd?define(function(){return i}):"object"==typeof module&&module.exports?module.exports=i:t.dataURLtoBlob=i}(window);
+//# sourceMappingURL=canvas-to-blob.min.js.map
+//]]>
+    </script>
+    <script type="text/javascript">
+//<![CDATA[
 $(function(){
-    var isTyping = {}
-    var localUser = {}
-
+    // Chat functions.
     function stopTyping(id) {
         delete isTyping[id]
         $('#typer'+id).remove()
@@ -134,7 +144,50 @@ $(function(){
         }
     }
 
+    // Canvas functions.
+    function canvasBlob(blob) {
+        socket.emit("blob", blob)
+        var newImg = document.createElement("img"),
+            url = URL.createObjectURL(blob)
+        newImg.onload = function() {
+            // no longer need to read the blob so it's revoked
+            URL.revokeObjectURL(url)
+        };
+        newImg.src = url;
+        placeChatImg(newImg);
+        document.body.appendChild(newImg);
+    }
+
+    function recieveBlob(blob) {
+        var uint8Arr = new Uint8Array(blob);
+        var binary = '';
+        for (var i = 0; i < uint8Arr.length; i++) {
+            binary += String.fromCharCode(uint8Arr[i]);
+        }
+        var base64String = window.btoa(binary);
+
+        var img = new Image();
+        img.onload = function() {
+            placeChatImg(this)
+        }
+        img.src = 'data:image/png;base64,' + base64String;
+    }
+
+    function placeChatImg(img) {
+        document.body.appendChild(img)
+    }
+
+    // Chat globals.
+    var isTyping = {}
+    var localUser = {}
+
+    // Connection.
     var socket = io()
+
+    // Form functionality.
+    $('#m').on('input', function() {
+        socket.emit('is_typing');
+    })
 
     $('#fm').submit(function(){
         var msg = $('#m').val()
@@ -144,10 +197,6 @@ $(function(){
             $('#m').val('')
         }
         return false
-    })
-
-    $('#m').on('input', function() {
-        socket.emit('is_typing');
     })
 
     $('#fn').submit(function(){
@@ -161,6 +210,21 @@ $(function(){
         return false
     })
 
+    $('#cm').submit(function(){
+        var canvas = document.getElementById("paint");
+        if (typeof canvas.toBlob !== "undefined") {
+          canvas.toBlob(function(blob) {
+              canvasBlob(blob);
+          }, "image/jpeg", 0.75);
+        }
+        else if (typeof canvas.msToBlob !== "undefined") {
+          var blob = canvas.msToBlob()
+          canvasBlob(blob)
+        }
+        return false
+    })
+
+    // Message handlers.
     socket.on('is_typing', function(user){
         if (user.id in isTyping){
             clearTimeout(isTyping[user.id])
@@ -209,6 +273,50 @@ $(function(){
             $('#typer'+user.id).text(user.name+"...");
         }
     })
+
+    socket.on('blob', function(blob){
+        recieveBlob(blob)
+    })
+
+    // Canvas functionality.
+    var canvas = document.querySelector('#paint');
+    var ctx = canvas.getContext('2d');
+     
+    var sketch = document.querySelector('#sketch');
+    var sketch_style = getComputedStyle(sketch);
+    canvas.width = parseInt(sketch_style.getPropertyValue('width'));
+    canvas.height = parseInt(sketch_style.getPropertyValue('height'));
+
+    var mouse = {x: 0, y: 0};
+
+    /* Mouse Capturing Work */
+    canvas.addEventListener('mousemove', function(e) {
+    mouse.x = e.pageX - this.offsetLeft;
+    mouse.y = e.pageY - this.offsetTop;
+    }, false);
+    
+    /* Drawing on Paint App */
+    ctx.lineWidth = 5;
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = 'blue';
+     
+    canvas.addEventListener('mousedown', function(e) {
+        ctx.beginPath();
+        ctx.moveTo(mouse.x, mouse.y);
+     
+        canvas.addEventListener('mousemove', onPaint, false);
+    }, false);
+     
+    canvas.addEventListener('mouseup', function() {
+        canvas.removeEventListener('mousemove', onPaint, false);
+    }, false);
+     
+    var onPaint = function() {
+        ctx.lineTo(mouse.x, mouse.y);
+        ctx.stroke();
+    };
+
 });
 //]]>
     </script>
