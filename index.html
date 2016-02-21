@@ -135,17 +135,22 @@ $(function(){
         addToLogAndScroll('> ' +message, "list-group-item update")
     }
 
-    function addToLogAndScroll(message, classType){
+    function addToLogAndScroll(message, classType, img){
         var out = document.getElementById("chat-scroll")
         var isScrolledToBottom = out.scrollHeight - out.clientHeight <= out.scrollTop + 1
-        $('#messages').append($('<li>').addClass("list-group-item " + classType).text(message))
+        var addition = $('<li>').addClass("list-group-item " + classType)
+        addition.text(message)
+        if (typeof img !== "undefined") {
+            addition.append($('<img>').attr("src", img.src))
+        }
+        $('#messages').append(addition)
         if(isScrolledToBottom) {
             out.scrollTop = out.scrollHeight - out.clientHeight
         }
     }
 
     // Canvas functions.
-    function canvasBlob(blob) {
+    function canvasBlob(user, blob) {
         socket.emit("blob", blob)
         var newImg = document.createElement("img"),
             url = URL.createObjectURL(blob)
@@ -154,26 +159,25 @@ $(function(){
             URL.revokeObjectURL(url)
         };
         newImg.src = url;
-        placeChatImg(newImg);
-        document.body.appendChild(newImg);
+        placeChatImg(user, newImg);
     }
 
-    function recieveBlob(blob) {
+    function recieveBlob(user, blob) {
         var uint8Arr = new Uint8Array(blob);
         var binary = '';
         for (var i = 0; i < uint8Arr.length; i++) {
             binary += String.fromCharCode(uint8Arr[i]);
         }
         var base64String = window.btoa(binary);
-
         var img = new Image();
         img.onload = function() {
-            placeChatImg(this)
+            placeChatImg(user, this)
         }
         img.src = 'data:image/png;base64,' + base64String;
     }
 
-    function placeChatImg(img) {
+    function placeChatImg(user, img) {
+        addToLogAndScroll(user.name + " drew:", "", img)
         document.body.appendChild(img)
     }
 
@@ -203,6 +207,7 @@ $(function(){
         var input = $('#n')
         var name = input.val()
         if (name && name.length > 0) {
+            localUser.name = name
             socket.emit('name_change', name)
             input.attr('placeholder', name)
             addUpdate('You changed your name to  "' + name + '"')
@@ -214,12 +219,12 @@ $(function(){
         var canvas = document.getElementById("paint");
         if (typeof canvas.toBlob !== "undefined") {
           canvas.toBlob(function(blob) {
-              canvasBlob(blob);
+              canvasBlob(localUser, blob);
           }, "image/jpeg", 0.75);
         }
         else if (typeof canvas.msToBlob !== "undefined") {
           var blob = canvas.msToBlob()
-          canvasBlob(blob)
+          canvasBlob(localUser, blob)
         }
         return false
     })
@@ -274,8 +279,8 @@ $(function(){
         }
     })
 
-    socket.on('blob', function(blob){
-        recieveBlob(blob)
+    socket.on('blob', function(data){
+        recieveBlob(data.user, data.blob)
     })
 
     // Canvas functionality.

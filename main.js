@@ -50,7 +50,8 @@ io.on('connection', function(socket){
   })
 
   socket.on('blob', function(blob){
-    socket.broadcast.emit('blob', blob)
+    var user = users[socket.id]
+    socket.broadcast.emit('blob', { user:user, blob:blob})
   })
 })
 
