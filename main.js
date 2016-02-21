@@ -41,7 +41,7 @@ io.on('connection', function(socket){
     users[socket.id].name = msg
     var user = users[socket.id]
     console.log('[name_change]', oldName, user.name, user.id, msg)
-    io.emit('name_change', user)
+    socket.broadcast.emit('name_change', user)
   })
 
   socket.on('is_typing', function(){

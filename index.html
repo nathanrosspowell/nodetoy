@@ -78,7 +78,7 @@
             <form id="fn" action="">
                 <div class="form-group">
                     <label for="n">Change Name:</label>
-                    <input id="n" autocomplete="off" type="text" class="form-control" placeholder="Superman">
+                    <input id="n" autocomplete="off" type="text" class="form-control">
                 </div>
                 <button type="submit" class="btn btn-default">Set</button>
             </form>
@@ -128,9 +128,7 @@ $(function(){
     function addToLogAndScroll(message, classType){
         var out = document.getElementById("chat-scroll")
         var isScrolledToBottom = out.scrollHeight - out.clientHeight <= out.scrollTop + 1
-        console.log(out.scrollHeight - out.clientHeight,  out.scrollTop + 1)
         $('#messages').append($('<li>').addClass("list-group-item " + classType).text(message))
-        console.log(isScrolledToBottom)
         if(isScrolledToBottom) {
             out.scrollTop = out.scrollHeight - out.clientHeight
         }
@@ -153,9 +151,12 @@ $(function(){
     })
 
     $('#fn').submit(function(){
-        var name = $('#n').val()
+        var input = $('#n')
+        var name = input.val()
         if (name && name.length > 0) {
             socket.emit('name_change', name)
+            input.attr('placeholder', name)
+            addUpdate('You changed your name to  "' + name + '"')
         }
         return false
     })
@@ -172,6 +173,7 @@ $(function(){
 
     socket.on('connection', function(user){
         localUser = user
+        $('#n').attr('placeholder', user.name)
         addUpdate('Welcome, "' + user.name + '"!')
     })
 
@@ -200,17 +202,9 @@ $(function(){
     socket.on('name_change', function(user){
         var oldName = "server_error"
         var userList = $('#user'+user.id)
-        if (userList.get(0)){
-            oldName = userList.text()
-            userList.text(user.name)
-            addUpdate('"' + oldName + '" changed name to  "' + user.name + '"')
-        }
-        else {
-            var oldName = localUser.name
-            localUser.name = user.name
-            addUpdate('You changed your name to  "' + user.name + '"')
-        }
-        $('#user'+user.id).text(user.name)
+        oldName = userList.text()
+        userList.text(user.name)
+        addUpdate('"' + oldName + '" changed name to  "' + user.name + '"')
         if (user.id in isTyping){
             $('#typer'+user.id).text(user.name+"...");
         }
