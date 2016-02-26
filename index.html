@@ -47,6 +47,10 @@
     #fm {
         width:100%;
     }
+    p.slim{
+        margin: 0;
+        padding: 0;
+    }
 
 /*]]>*/
     </style>
@@ -83,7 +87,7 @@
                 <button type="submit" class="btn btn-default"><span class="glyphicon glyphicon-log-in" aria-hidden="true"></span></button>
             </form>
             <h1>Users</h1>
-            <ul id="users"></ul>
+            <div id="users"></div>
             <h1>Typing</h1>
             <ul id="typers"></ul>
         </div>
@@ -93,18 +97,18 @@
             </div>
             <div class="chat-input">
                 <form id="fm" action="" class="form-inline">
-                  <div class="form-group">
-                    <input id="m" autocomplete="off" type="text" class="form-control" placeholder="Type a message...">
-                  </div>
-                  <button type="submit" class="btn btn-default"><span class="glyphicon glyphicon-pencil" aria-hidden="true"></span></button>
+                    <div class="form-group">
+                        <input id="m" autocomplete="off" type="text" class="form-control" placeholder="Type a message...">
+                    </div>
+                    <button type="submit" class="btn btn-default"><span class="glyphicon glyphicon-pencil" aria-hidden="true"></span></button>
                 </form>
             </div>
-               <div class="panel panel-default">
+            <div class="panel panel-default">
                 <canvas id="myCanvas" width="578" height="200"></canvas>
-               </div>
-              <form id="cm" action="" class="form-inline">
-              <button id="clearCanvas" type="reset" value="Reset" class="btn btn-default"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span></button>
-              <button type="submit" class="btn btn-default"><span class="glyphicon glyphicon-send" aria-hidden="true"></span></button>
+            </div>
+            <form id="cm" action="" class="form-inline">
+                <button id="clearCanvas" type="reset" value="Reset" class="btn btn-default"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span></button>
+                <button type="submit" class="btn btn-default"><span class="glyphicon glyphicon-send" aria-hidden="true"></span></button>
             </form>
         </div>
     </div>
@@ -137,17 +141,32 @@ $(function(){
     function addToLogAndScroll(userName, message, classType, img){
         var out = document.getElementById("chat-scroll")
         var isScrolledToBottom = out.scrollHeight - out.clientHeight <= out.scrollTop + 1
-        var panel = $('<div>').addClass("panel panel-default")
-        panel.append($('<div>').addClass("panel-heading").text(userName))
-        var panelBody = $('<div>').addClass("panel-body");
+        var lastMessage = $( "#messages > div:last-child > div.panel-heading")
+        var appendToPrev = (lastMessage.length && lastMessage.text() === userName)
+        var panel = null;
+        var panelBody = null;
+        if (appendToPrev) {
+            panelBody = $( "#messages > div:last-child > div.panel-body" )
+        }
+        else {
+            panel = $('<div>').addClass("panel panel-default parent")
+            if (userName === localUser.name) {
+                panel.addClass("text-right")
+            }
+            var heading = $('<div>').addClass("panel-heading")
+            panel.append(heading.text(userName))
+            panelBody = $('<div>').addClass("panel-body")
+        }
         if (typeof img !== "undefined") {
             panelBody.append($('<img>').attr("src", img.src))
         }
         else {
-            panelBody.text(message)
+            panelBody.append($('<p>').addClass("slim").text(message))
         }
-        panel.append(panelBody);
-        $('#messages').append(panel)
+        if (appendToPrev == false) {
+            panel.append(panelBody)
+            $('#messages').append(panel)
+        }
 
         setTimeout(function() {
             if(isScrolledToBottom) {
@@ -165,22 +184,22 @@ $(function(){
             // no longer need to read the blob so it's revoked
             URL.revokeObjectURL(url)
         };
-        newImg.src = url;
-        placeChatImg(user, newImg);
+        newImg.src = url
+        placeChatImg(user, newImg)
     }
 
     function recieveBlob(user, blob) {
-        var uint8Arr = new Uint8Array(blob);
-        var binary = '';
+        var uint8Arr = new Uint8Array(blob)
+        var binary = ''
         for (var i = 0; i < uint8Arr.length; i++) {
-            binary += String.fromCharCode(uint8Arr[i]);
+            binary += String.fromCharCode(uint8Arr[i])
         }
-        var base64String = window.btoa(binary);
-        var img = new Image();
+        var base64String = window.btoa(binary)
+        var img = new Image()
         img.onload = function() {
             placeChatImg(user, this)
         }
-        img.src = 'data:image/png;base64,' + base64String;
+        img.src = 'data:image/png;base64,' + base64String
     }
 
     function placeChatImg(user, img) {
@@ -210,7 +229,7 @@ $(function(){
 
     // Form functionality.
     $('#m').on('input', function() {
-        socket.emit('is_typing');
+        socket.emit('is_typing')
     })
 
     $('#fm').submit(function(){
@@ -302,7 +321,7 @@ $(function(){
         userList.text(user.name)
         addUpdate('"' + oldName + '" changed name to  "' + user.name + '"')
         if (user.id in isTyping){
-            $('#typer'+user.id).text(user.name+"...");
+            $('#typer'+user.id).text(user.name+"...")
         }
     })
 
@@ -318,23 +337,21 @@ $(function(){
 
 
     canvas.addEventListener('mousemove', function(e) {
-        mouse = getMousePos(canvas, e);
-    }, false);
+        mouse = getMousePos(canvas, e)
+    }, false)
 
     canvas.addEventListener('mousedown', function(e) {
-        mouse = getMousePos(canvas, e);
-        context.beginPath();
-        context.moveTo(mouse.x, mouse.y);
-        canvas.addEventListener('mousemove', onPaint, false);
-    }, false);
-
+        mouse = getMousePos(canvas, e)
+        context.beginPath()
+        context.moveTo(mouse.x, mouse.y)
+        canvas.addEventListener('mousemove', onPaint, false)
+    }, false)
 
     canvas.addEventListener('mouseup', function() {
-        canvas.removeEventListener('mousemove', onPaint, false);
-    }, false);
+        canvas.removeEventListener('mousemove', onPaint, false)
+    }, false)
 
-
-});
+})
 //]]>
     </script>
 </body>
