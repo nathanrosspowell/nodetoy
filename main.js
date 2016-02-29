@@ -8,7 +8,11 @@ var users = {}
 
 app.get('/', function(req, res){
   console.log('[app.get /] sending out index.html')
-  res.sendFile(__dirname + '/index.html')
+  res.sendfile(__dirname + '/index.html')
+})
+
+app.get('/js/client.js', function(req, res){
+    res.sendFile(__dirname + '/js/client.js')
 })
 
 io.on('connection', function(socket){
