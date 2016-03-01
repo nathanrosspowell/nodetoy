@@ -23,7 +23,11 @@ app.get('/js/client.js', function(req, res){
 io.on('connection', function(socket){
   var id = count++;
   var name = "User " + id
-  socket.emit('user_list', users)
+  var values = Object.keys(users).map(function(key){
+    return users[key]
+  })
+  // We don't want to send the socket ids, just the values.
+  socket.emit('user_list', values)
   users[socket.id] = { name:name, id:id, avatar:defaultAvatar }
   socket.broadcast.emit('user_add', users[socket.id])
   console.log('[connection]', name, id, socket.id)

@@ -291,4 +291,10 @@ $(function(){
     canvas.addEventListener('mouseup', function() {
         canvas.removeEventListener('mousemove', onPaint, false)
     }, false)
+
+
+    $('input[type=text]').tooltip({
+        placement: "bottom",
+        trigger: "hover"
+    })
 })
