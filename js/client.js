@@ -158,13 +158,17 @@ $(function(){
     
     function storeName(name) {
         if (typeof(Storage) !== "undefined") {
-            var name = localStorage.setItem("name", name)
+            localStorage.setItem("name", name)
+            localUser.name = name
+            users[localUser.id].name = name
         }
     }
 
     function storAvatar(avatar) {
         if (typeof(Storage) !== "undefined") {
-            var avatar = localStorage.setItem("avatar", avatar)
+            localStorage.setItem("avatar", avatar)
+            localUser.avatar = avatar
+            users[localUser.id].avatar = avatar
         }
     }
 
