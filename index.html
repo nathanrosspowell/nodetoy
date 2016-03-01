@@ -10,50 +10,7 @@
     crossorigin="anonymous" type="text/css" />
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r"
     crossorigin="anonymous" type="text/css" />
-    <style type="text/css">
-/*<![CDATA[*/
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-        height: 100%;
-        font: 13px Helvetica, Arial;
-    }
-    .header-padding {
-        padding-top: 60px;
-    }
-    #messages { 
-        list-style-type: none; 
-        margin: 0; 
-        padding: 0; 
-    }
-    #messages li { 
-        padding: 5px 10px; 
-    }
-    #messages li.update { 
-        color:blue; 
-    }
-    #messages li:nth-child(odd) { 
-        background: #eee; 
-    }
-    .chat-main { 
-        height:100vh;}
-    .chat-log { 
-        height: calc(100% - 300px);
-        overflow:auto;
-    }
-    .chat-input { 
-        bottom: 0;
-        height: 35px;
-    }
-    #fm {
-        width:100%;
-    }
-    p.slim{
-        margin: 0;
-        padding: 0;
-    }
-
-/*]]>*/
-    </style>
+    <link rel="stylesheet" href="/css/client.css" type="text/css" />
 </head>
 
 <body>
@@ -83,6 +40,12 @@
             <form id="fn" action="" class="form-inline">
                 <div class="form-group">
                     <input id="n" autocomplete="off" type="text" class="form-control">
+                </div>
+                <button type="submit" class="btn btn-default"><span class="glyphicon glyphicon-log-in" aria-hidden="true"></span></button>
+            </form>
+            <form id="an" action="" class="form-inline">
+                <div class="form-group">
+                    <input id="a" autocomplete="off" type="text" class="form-control">
                 </div>
                 <button type="submit" class="btn btn-default"><span class="glyphicon glyphicon-log-in" aria-hidden="true"></span></button>
             </form>

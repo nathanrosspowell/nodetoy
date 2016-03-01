@@ -6,14 +6,16 @@ $(function(){
     }
 
     function addChat(data){
-        addToLogAndScroll(data.name, data.msg, "")
+        addToLogAndScroll(data.id, data.msg, "", undefined)
     }
 
     function addUpdate(message){
-        addToLogAndScroll( 'Admin', message, "list-group-item update")
+        addToLogAndScroll( 0, message, "list-group-item update")
     }
 
-    function addToLogAndScroll(userName, message, classType, img){
+    function addToLogAndScroll(userId, message, classType, img){
+        var user = users[userId]
+        var userName = user.name
         var out = document.getElementById("chat-scroll")
         var isScrolledToBottom = out.scrollHeight - out.clientHeight <= out.scrollTop + 1
         var lastMessage = $( "#messages > div:last-child > div.panel-heading")
@@ -24,12 +26,19 @@ $(function(){
             panelBody = $( "#messages > div:last-child > div.panel-body" )
         }
         else {
+            var isLocal = (userName === localUser.name)
             panel = $('<div>').addClass("panel panel-default parent")
-            if (userName === localUser.name) {
+            if (isLocal) {
                 panel.addClass("text-right")
             }
             var heading = $('<div>').addClass("panel-heading")
-            panel.append(heading.text(userName))
+            var avatar = $('<img>')
+                .addClass("center-cropped img-circle")
+                .attr('src',users[userId].avatar)
+                .attr('alt',userName)
+                .attr('title',userName)
+            heading.append(avatar)
+            panel.append(heading)
             panelBody = $('<div>').addClass("panel-body")
         }
         if (typeof img !== "undefined") {
@@ -78,7 +87,7 @@ $(function(){
     }
 
     function placeChatImg(user, img) {
-        addToLogAndScroll(user.name, "", "", img)
+        addToLogAndScroll(user.id, user.name, "", img)
     }
 
     // Painting functions
@@ -98,6 +107,12 @@ $(function(){
     // Chat globals.
     var isTyping = {}
     var localUser = {}
+    var users = {}
+    users[0] = {
+        name: "Admin",
+        id: 0,
+        avatar: "http://i.imgur.com/gu4kfeL.jpg"
+    }
 
     // Connection.
     var socket = io()
@@ -125,6 +140,18 @@ $(function(){
             socket.emit('name_change', name)
             input.attr('placeholder', name)
             addUpdate('You changed your name to  "' + name + '"')
+        }
+        return false
+    })
+
+    $('#an').submit(function(){
+        var input = $('#a')
+        var avatar = input.val()
+        if (avatar && avatar.length > 0) {
+            localUser.avatar = avatar
+            socket.emit('avatar_change', avatar)
+            input.attr('placeholder', avatar)
+            addUpdate('You changed your avatar to  "' + avatar + '"')
         }
         return false
     })
@@ -171,7 +198,9 @@ $(function(){
     socket.on('connection', function(user){
         localUser = user
         $('#n').attr('placeholder', user.name)
+        $('#a').attr('placeholder', user.avatar)
         addUpdate('Welcome, "' + user.name + '"!')
+        users[user.id] = user
     })
 
     socket.on('chat', function(data){
@@ -183,17 +212,20 @@ $(function(){
         for (i = 0; i < list.length; i++) { 
             var user = list[i]
             $('#users').append($('<li>').attr('id', 'user'+user.id).text(user.name))
+            users[user.id] = user
         }
     })
 
     socket.on('user_add', function(user){
         $('#users').append($('<li>').attr('id', 'user'+user.id).text(user.name))
         addUpdate('"' + user.name + '" joined.')
+        users[user.id] = user
     })
 
     socket.on('user_remove', function(user){
         $('#user'+user.id).remove()
         addUpdate('"' + user.name + '" left.')
+        delete users[user.id]
     })
 
     socket.on('name_change', function(user){
@@ -205,6 +237,15 @@ $(function(){
         if (user.id in isTyping){
             $('#typer'+user.id).text(user.name+"...")
         }
+        users[user.id].name = user.name
+    })
+
+    socket.on('avatar_change', function(user){
+        var oldAvatar = "server_error"
+        var userList = $('#user'+user.id)
+        oldAvatar = userList.text()
+        userList.text(user.avatar)
+        users[user.id].avatar = user.avatar
     })
 
     socket.on('blob', function(data){
