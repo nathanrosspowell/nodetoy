@@ -127,6 +127,39 @@ $(function(){
         return false
     }
 
+    // local storage.
+    function initFromStorage(){
+        // Check browser support
+        if (typeof(Storage) !== "undefined") {
+            var name = localStorage.getItem("name")
+            if (name !== null) {
+                socket.emit('name_change', name)
+                $('#n').attr('placeholder', name)
+                localUser.name = name
+                users[localUser.id].name = name
+            }
+            var avatar = localStorage.getItem("avatar")
+            if (avatar !== null) {
+                socket.emit('avatar_change', avatar)
+                $('#a').attr('placeholder', avatar)
+                localUser.avatar = avatar
+                users[localUser.id].avatar = avatar
+            }
+        }
+    }
+    
+    function storeName(name) {
+        if (typeof(Storage) !== "undefined") {
+            var name = localStorage.setItem("name", name)
+        }
+    }
+
+    function storAvatar(avatar) {
+        if (typeof(Storage) !== "undefined") {
+            var avatar = localStorage.setItem("avatar", avatar)
+        }
+    }
+
     // Chat globals.
     var isTyping = {}
     var localUser = {}
@@ -164,7 +197,7 @@ $(function(){
             input.attr('placeholder', name)
             input.val('')
             addUpdate('You changed your name to  "' + name + '"')
-
+            storeName(name)
         }
         return false
     })
@@ -178,6 +211,7 @@ $(function(){
             input.attr('placeholder', avatar)
             input.val('')
             addUpdate('You changed your avatar to  "' + avatar + '"')
+            storAvatar(avatar)
         }
         return false
     })
@@ -217,8 +251,9 @@ $(function(){
         localUser = user
         $('#n').attr('placeholder', user.name)
         $('#a').attr('placeholder', user.avatar)
-        addUpdate('Welcome, "' + user.name + '"!')
         users[user.id] = user
+        initFromStorage();
+        addUpdate('Welcome, "' + user.name + '"!')
     })
 
     socket.on('chat', function(data){
