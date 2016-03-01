@@ -18,8 +18,8 @@ $(function(){
         var userName = user.name
         var out = document.getElementById("chat-scroll")
         var isScrolledToBottom = out.scrollHeight - out.clientHeight <= out.scrollTop + 1
-        var lastMessage = $( "#messages > div:last-child > div.panel-heading")
-        var appendToPrev = (lastMessage.length && lastMessage.text() === userName)
+        var lastMessage = $( "#messages > div:last-child > div.panel-heading > img")
+        var appendToPrev = (lastMessage.length && lastMessage.attr("alt") === userName)
         var panel = null;
         var panelBody = null;
         if (appendToPrev) {
