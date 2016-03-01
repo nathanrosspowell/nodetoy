@@ -28,8 +28,8 @@ $(function(){
         }
         var out = document.getElementById("chat-scroll")
         var isScrolledToBottom = out.scrollHeight - out.clientHeight <= out.scrollTop + 1
-        var lastMessage = $( "#messages > section:last-child > div > div." + avatarDiv + " > img")
-        var appendToPrev = (lastMessage.length && lastMessage.attr("alt") === userName)
+        var lastMessage = $( "#messages > section:last-child > div > div." + avatarDiv + " > a > img")
+        var appendToPrev = (lastMessage.length && lastMessage.attr("title") === userName)
         var panel = null;
         var panelBody = null;
         if (appendToPrev) {
@@ -44,9 +44,13 @@ $(function(){
             var avatar = $('<img>')
                 .addClass("center-cropped img-circle")
                 .attr('src',users[userId].avatar)
-                .attr('alt',userName)
-                .attr('title',userName)
-            heading.append(avatar)
+            var wrapper = $('<a>')
+                .addClass('avatar-tooltip')
+                .attr('href', '#')
+                .attr('data-toggle', 'tooltip')
+                .attr('title', userName)
+                .append(avatar)
+            heading.append(wrapper)
             panelBody = $('<div>').addClass("triangle-isosceles " + triangleType)
             var speech = $('<div>').addClass(speechDiv).append(panelBody)
             if (isLocal) {
@@ -58,6 +62,10 @@ $(function(){
                 panel.append(speech)
             }
             $('#messages').append($('<section>').addClass('message').append(panel))
+            $('.avatar-tooltip').tooltip({
+                placement: "top",
+                trigger: "hover"
+            })
         }
         if (typeof img !== "undefined") {
             panelBody.append($('<img>').attr("src", img.src))
@@ -332,4 +340,5 @@ $(function(){
         placement: "bottom",
         trigger: "hover"
     })
+
 })
